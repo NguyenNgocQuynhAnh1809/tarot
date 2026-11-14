@@ -59,6 +59,7 @@ svg{width:1em;height:1em;display:block}
 button,input,select{font-family:inherit}
 td,th{padding:8px 6px}
 .img{font-style:italic;color:var(--mu);font-size:14px;margin:6px 0}#reading .adv{color:var(--gold)}
+.vd{display:inline-block;font-weight:700;font-size:20px;padding:4px 16px;border-radius:20px;margin:6px 0;background:#3a2c63}.vd.Y{background:#1f6b45}.vd.N{background:#8a2f3d}.vd.M{background:#7a6420}
 </style>
 </head>
 <body>
@@ -67,6 +68,7 @@ td,th{padding:8px 6px}
 <div class="sub">Tập trung vào câu hỏi của bạn, chọn số lá rồi bốc bài</div>
 <div class="panel">
   <input type="text" id="q" placeholder="Câu hỏi của bạn (không bắt buộc)">
+  <label>Chủ đề: <select id="tp"><option value="all">Tổng quát</option><option value="love">Tình yêu</option><option value="work">Công việc</option><option value="study">Học tập</option><option value="dir">Định hướng</option><option value="yn">Yes / No</option><option value="adv">Lời khuyên</option></select></label>
   <label>Số lá: <select id="n"></select></label>
   <label><input type="checkbox" id="rv" checked> Cho phép lá ngược</label>
   <button id="go">Bốc bài</button>
@@ -171,6 +173,115 @@ SUITS.forEach((s,si)=>s.d.split("\n").forEach((l,i)=>{const p=l.split("|");
  DECK.push({id:22+si*14+i,maj:0,suit:si,rank:i,en:RK[i][0]+" of "+s.k,vn:RK[i][1]+" "+s.vn,img:p[0],up:p[1],rv:p[2],ic:s.ic});}));
 
 const $=id=>document.getElementById(id);
+const YN="YYMYYMYYYMYMMNYNNYMYYY"+"YMYYMYMYMNYMYY"+"YYYNNMMNYYYYMM"+"YMNMNYNNNNMMMM"+"YMYMNYMYYYYMYY";
+const flip={Y:"N",N:"Y",M:"M"};
+const pol=d=>d.r?flip[YN[d.c.id]]:YN[d.c.id];
+const TPN={all:"Tổng quát",love:"Tình yêu",work:"Công việc",study:"Học tập",dir:"Định hướng",yn:"Yes / No",adv:"Lời khuyên"};
+const VD={Y:"CÓ",N:"KHÔNG",M:"CHƯA RÕ / TÙY"};
+const PADV={Y:"Hãy tiến lên và tận dụng đà thuận lợi.",N:"Hãy chậm lại, xử lý trở ngại trước khi đi tiếp.",M:"Hãy chờ thêm thông tin, đừng quyết vội."};
+const FR={
+ love:{Y:"Năng lượng tình cảm đang thuận: có thể là kết nối mới, sự hòa hợp hoặc bước tiến trong mối quan hệ.",N:"Tình cảm đang có trở ngại: dễ hiểu lầm, khoảng cách hoặc cảm xúc chưa được giải quyết.",M:"Tình cảm đang ở thế chờ: chưa rõ hướng, cần thêm thời gian và giao tiếp."},
+ work:{Y:"Công việc có đà thuận: cơ hội, sự công nhận hoặc tiến triển đáng kể.",N:"Công việc đang gặp áp lực hoặc trở ngại; cần thận trọng với quyết định lớn.",M:"Công việc ở giai đoạn cân nhắc; chưa nên vội, cần thêm thông tin."},
+ study:{Y:"Việc học thuận lợi: tiếp thu tốt, có động lực và kết quả đáng mong đợi.",N:"Việc học gặp cản trở: mất tập trung, áp lực hoặc phương pháp chưa phù hợp.",M:"Việc học cần điều chỉnh: hãy xác định lại mục tiêu và cách học trước khi tăng tốc."},
+ dir:{Y:"Hướng đi đang rõ dần và bạn có nền tảng để tiến lên.",N:"Hướng đi hiện tại có điều chưa ổn; nên xem lại thay vì cố đi tiếp.",M:"Bạn đang ở ngã rẽ: cần thêm thông tin và thời gian để chọn."}};
+const SL={
+ love:["Đam mê và sự chủ động là chìa khóa.","Cảm xúc là trung tâm của chuyện này.","Giao tiếp và sự thật đóng vai trò chính.","Sự ổn định và cam kết thực tế rất quan trọng."],
+ work:["Hãy hành động và dám nhận dự án mới.","Quan hệ đồng nghiệp và niềm yêu thích công việc ảnh hưởng nhiều.","Tư duy, giao tiếp và quyết định sáng suốt là chìa khóa.","Thu nhập, kỹ năng thực tế và sự bền bỉ quyết định kết quả."],
+ study:["Cần giữ nhiệt huyết và chủ động thực hành.","Hứng thú và cảm xúc quyết định hiệu quả học.","Hãy tập trung vào tư duy phản biện, tài liệu và thi cử.","Học đều đặn, thực hành nhiều và chuẩn bị kỹ."],
+ dir:["Hãy chọn hướng khiến bạn có năng lượng.","Hãy chọn theo điều bạn thực sự quan tâm.","Hãy phân tích rõ ưu nhược trước khi chọn.","Hãy cân nhắc tính khả thi và nền tảng thực tế."]};
+const ADV=`Hãy dám bắt đầu điều bạn vẫn trì hoãn, nhưng chuẩn bị một tấm lưới an toàn nhỏ trước khi nhảy.|Dừng lại kiểm tra rủi ro; nếu bạn né khởi đầu vì sợ, hãy làm thử một bước rất nhỏ.
+Liệt kê nguồn lực đang có và chọn một việc cụ thể để bắt tay làm ngay hôm nay.|Tập trung vào một mục tiêu thay vì dàn trải, và kiểm tra xem lời hứa hay cách nói của bạn có thật lòng không.
+Đừng vội quyết định; ghi lại cảm giác trực giác và quan sát thêm vài ngày.|Ngừng đoán mò: hỏi thẳng điều bạn chưa rõ và dành thời gian yên tĩnh để nghe nội tâm.
+Dành thời gian chăm sóc bản thân và những thứ bạn muốn phát triển; để chúng lớn từ từ.|Đừng cho đi đến cạn kiệt; đặt ranh giới và làm điều gì đó sáng tạo cho riêng mình.
+Lập kế hoạch rõ ràng, đặt quy tắc và hạn chót cho chính mình.|Nới lỏng sự kiểm soát; hoặc ngược lại, tự đặt kỷ luật rõ hơn nếu bạn đang thiếu cấu trúc.
+Tìm một người thầy hoặc quy trình đã được kiểm chứng để học theo.|Bạn có quyền đặt câu hỏi với quy tắc cũ; hãy chọn cách phù hợp với giá trị của mình.
+Chọn theo điều bạn thật sự coi trọng, rồi nói rõ với người liên quan.|Xem mình đang chọn vì sợ hãi hay vì giá trị thật; nói chuyện thẳng thắn trước khi quyết định.
+Đặt một mục tiêu duy nhất và giữ nhịp đi đều, đừng để bị phân tán.|Dừng lại lấy lại phương hướng; xác định điều gì đang kéo bạn đi lệch.
+Đối diện nỗi sợ bằng kiên nhẫn và dịu dàng thay vì ép bản thân.|Nuôi lại niềm tin vào mình bằng việc nhỏ làm được mỗi ngày; đừng để cảm xúc nhất thời lái bạn.
+Dành vài buổi yên tĩnh để tự hỏi mình thật sự muốn gì.|Đừng lẩn trốn trong cô lập; thử hỏi ý kiến một người bạn tin tưởng.
+Nắm bắt cơ hội đang đến vì thời điểm này thuận; đừng bám vào kế hoạch quá cứng.|Đừng tự trách chuyện ngoài tầm kiểm soát; chuẩn bị phương án dự phòng và chờ chu kỳ xoay.
+Thu thập đủ sự kiện và giấy tờ trước khi quyết định; hành xử công tâm.|Xem bạn có đang né trách nhiệm hay đánh giá thiên lệch không; sửa điều cần sửa.
+Tạm dừng và thử nhìn vấn đề từ phía ngược lại thay vì cố ép tiến.|Nếu chờ đợi đã vô ích, hãy chủ động đổi cách làm thay vì tiếp tục hy sinh.
+Chủ động khép lại điều đã hết vai trò để có chỗ cho thứ mới.|Nhận ra mình đang níu kéo điều gì; viết ra điều cần buông và một bước đầu tiên.
+Tiến đều và điều chỉnh liều lượng; hòa hợp công việc với nghỉ ngơi.|Tìm lại tiết độ: cắt bớt thái quá ở đâu đó và kiên nhẫn trở lại nhịp ổn định.
+Gọi tên điều đang trói bạn (thói quen, người, nỗi sợ) và thử một bước tách ra nhỏ.|Bạn đang tự gỡ xiềng; tiếp tục và nhờ hỗ trợ nếu thói quen quá mạnh.
+Chấp nhận thứ giả tạo đang sụp và bắt đầu xây lại trên điều thật.|Đừng né điều cần đối diện; xử lý sớm thì thiệt hại nhỏ hơn.
+Giữ niềm tin vào hướng tốt, nghỉ ngơi và làm điều chữa lành bạn.|Đừng đòi hỏi quá nhiều ở bản thân; tìm một nguồn cảm hứng nhỏ để lấy lại hy vọng.
+Chưa quyết định lớn; kiểm chứng thông tin và chờ mọi thứ rõ hơn.|Điều từng mờ đang rõ dần; đối diện nỗi sợ bằng cách gọi tên nó.
+Làm và chia sẻ điều bạn tự hào; tận hưởng thành quả.|Đừng chờ mọi thứ hoàn hảo mới vui; tìm một niềm vui nhỏ ngay hôm nay.
+Nhìn lại quãng đường đã qua, tha thứ và hành động theo tiếng gọi trong lòng.|Đừng tự phán xét quá khắt khe; học bài học rồi bước tiếp.
+Ăn mừng điều đã hoàn thành, rồi chọn chương tiếp theo.|Tìm xem điều còn dang dở nằm ở đâu và hoàn tất nó trước khi sang chương mới.
+Bắt tay ngay vào ý tưởng bạn đang hứng khởi, dù chỉ là bước đầu.|Tìm lại cảm hứng bằng một việc nhỏ; đừng chờ đủ hứng mới làm.
+Viết ra kế hoạch dài hạn và chọn một hướng để bắt đầu.|Đừng ngồi mãi trong vùng an toàn; đặt một hạn chót để quyết.
+Giữ kiên nhẫn; công sức đã gieo đang chuyển thành kết quả.|Rà lại kế hoạch và chuẩn bị phương án khác nếu việc chậm.
+Ăn mừng và củng cố nền tảng với người thân hoặc đồng đội.|Xem nền tảng gia đình hoặc nhóm có vững không trước khi ăn mừng.
+Xem xung đột như cơ hội thử ý tưởng; giữ tranh luận lành mạnh.|Giảm căng thẳng ngầm; nói ra thay vì để âm ỉ.
+Nhận công nhận nhưng đừng quên chia công cho người cùng làm.|Đừng biến cảm giác thất bại thành tự ti; rút kinh nghiệm và làm lại.
+Giữ lập trường, bảo vệ điều quan trọng và đừng lùi sớm.|Chọn trận đáng đánh; nghỉ ngơi trước khi chịu quá tải.
+Nhanh tay hành động, trả lời tin nhắn, chốt việc đang chờ.|Đừng vội; kiểm tra thông tin trước khi gửi hay chốt.
+Bạn gần tới đích, hãy giữ sức và cẩn thận chi tiết cuối.|Nghỉ để hồi sức; đừng bỏ cuộc sát vạch.
+Chia bớt việc, ủy thác hoặc bỏ những việc không thiết yếu.|Buông bớt gánh nặng trước khi kiệt sức.
+Thử một ý tưởng mới nhỏ và học hỏi nhanh qua thực hành.|Hoàn thành một việc dang dở trước khi bắt đầu việc mới.
+Dùng năng lượng để hành động, nhưng cân nhắc hướng đi trước.|Chậm lại; đừng bỏ ngang vì nóng vội.
+Tự tin thể hiện bản thân và lôi kéo người khác bằng sự nhiệt tình.|Đừng để ghen tị hay nóng tính phá hỏng quan hệ.
+Nhìn xa, truyền cảm hứng cho nhóm và dám chịu trách nhiệm.|Lắng nghe góp ý; đừng độc đoán.
+Mở lòng đón tình cảm hoặc sáng tạo mới và nói ra điều bạn cảm nhận.|Đừng giấu cảm xúc; viết ra hoặc kể với ai đó an toàn.
+Nuôi dưỡng mối quan hệ bằng sự cho và nhận công bằng.|Nói thẳng điều gây mất cân bằng và lắng nghe người kia.
+Dành thời gian cho bạn bè và ăn mừng cùng họ.|Giữ chừng mực khi vui chơi và tránh buôn chuyện.
+Nhìn kỹ xung quanh: có cơ hội đang được đưa ra mà bạn chưa để ý.|Bạn đã sẵn sàng đón cơ hội; hãy nói có.
+Cho phép mình buồn, rồi nhìn vào hai chiếc cốc còn đứng vững.|Đã đến lúc buông tiếc nuối và bước tiếp.
+Thăm lại ký ức đẹp hoặc liên lạc người cũ, nhưng đừng sống trong đó.|Đừng kẹt mãi trong quá khứ; làm một điều mới hôm nay.
+Viết ra từng lựa chọn và đối chiếu với thực tế trước khi quyết.|Bạn đang tỉnh táo hơn; chọn một hướng và làm.
+Nếu điều gì không còn phù hợp, hãy can đảm rời đi để tìm ý nghĩa mới.|Tự hỏi mình đang trốn tránh hay thật sự cần ở lại.
+Biết ơn điều đã có và cho phép mình tận hưởng.|Hỏi bản thân điều gì thật sự còn thiếu, đừng chạy theo thứ không cần.
+Dành thời gian cho người thân và trân trọng sự gắn kết.|Nói chuyện thẳng về những giá trị khác biệt trong gia đình.
+Lắng nghe trực giác sáng tạo và thử biểu đạt cảm xúc.|Đừng mơ mộng quá; đối chiếu với thực tế.
+Chủ động mời, tỏ tình hoặc đề nghị, nhưng phải chân thành.|Đừng hứa điều bạn chưa chắc làm được.
+Lắng nghe và chăm sóc người khác bằng sự đồng cảm, nhưng giữ ranh giới.|Chăm sóc cảm xúc của bản thân trước.
+Giữ bình tĩnh khi cảm xúc dâng cao và đối xử bao dung.|Đừng dùng cảm xúc để kiểm soát; nói thẳng nhu cầu của bạn.
+Nói ra sự thật hoặc quyết định một điều rõ ràng ngay.|Kiểm tra lại thông tin; đừng phán đoán khi còn mơ hồ.
+Đặt thông tin lên bàn và quyết định, đừng bịt mắt né tránh.|Quyết định đang chín; hãy hành động.
+Cho phép mình đau và nói ra, vì nỗi đau cần được thừa nhận.|Bạn đang hồi phục; tha thứ và buông dần.
+Nghỉ ngơi thật sự, tạm rời các việc căng thẳng.|Đừng ép quay lại sớm; tự chăm sóc thêm.
+Cân nhắc cái giá của việc thắng; có thể nhường để giữ quan hệ.|Xin lỗi hoặc hòa giải nếu bạn đã đi quá.
+Rời xa điều làm bạn mệt, từng bước sang vùng yên bình hơn.|Xem điều gì giữ bạn lại; thử một bước nhỏ ra khỏi nó.
+Cẩn trọng với điều không minh bạch; làm rõ ràng, đừng lén lút.|Nói thật hoặc sửa sai trước khi bị lộ.
+Hỏi bản thân: ai nhốt mình, hay mình tự nhốt? Thử tìm một lối nhỏ.|Bạn đang mở dây trói; tiếp tục và nhờ giúp đỡ.
+Viết ra nỗi lo và chia sẻ với ai đó; đừng chịu đựng một mình.|Nỗi sợ nhẹ dần; tiếp tục tìm sự hỗ trợ.
+Chấp nhận đây là đáy; sau đó mọi thứ đi lên, nên hãy dọn lòng.|Đừng dằn vặt chuyện cũ; để vết thương lành.
+Hỏi nhiều, tìm hiểu kỹ và nói thẳng nhưng tử tế.|Cân nhắc lời trước khi nói; tránh chuyện đồn.
+Hành động dứt khoát nhưng kiểm tra dữ kiện.|Chậm lại; nói năng nhẹ nhàng hơn.
+Nói sự thật rõ ràng và giữ ranh giới.|Đừng để cay nghiệt thay cho sự thẳng thắn.
+Quyết định bằng lý trí và công bằng.|Đừng lạm dụng vị trí; lắng nghe cảm xúc người khác.
+Nắm cơ hội tài chính hoặc công việc mới và lập kế hoạch cụ thể.|Xem lại ngân sách; đừng bỏ lỡ cơ hội vì thiếu chuẩn bị.
+Lập thứ tự ưu tiên để cân bằng thu chi và thời gian.|Cắt bớt việc, tránh ôm đồm.
+Hợp tác với người giỏi và để họ góp ý cho chất lượng.|Tìm đồng đội, đừng làm một mình.
+Giữ vững tài sản cần thiết nhưng đừng siết quá chặt.|Thử buông bớt, cởi mở hơn với tiền bạc và người khác.
+Đừng ngại xin giúp đỡ; sự hỗ trợ có thể ở rất gần.|Bạn đang hồi phục; tiếp tục tìm nguồn hỗ trợ.
+Cho đi hợp lý và nhận mà không mang cảm giác mắc nợ.|Chú ý điều kiện kèm theo, đừng để bị lợi dụng.
+Kiên nhẫn chờ kết quả và đánh giá lại việc đầu tư thời gian.|Đừng bỏ công sức vào việc không hiệu quả; điều chỉnh.
+Luyện tay nghề đều đặn, chú ý chi tiết.|Đừng cầu toàn đến bỏ dở; làm xong rồi cải thiện.
+Tận hưởng thành quả tự lực và giữ sự độc lập.|Đừng phô trương hay phụ thuộc; xây thêm nền tảng.
+Nghĩ dài hạn về gia đình, tài sản, di sản.|Giải quyết sớm các rắc rối tài chính trong gia đình.
+Đặt mục tiêu thực tế và học một kỹ năng cụ thể.|Đừng lười; bắt đầu từ việc nhỏ.
+Làm đều đặn, chắc chắn, đừng vội.|Đừng bảo thủ; thử cách mới.
+Chăm lo thực tế cho bản thân và người thân.|Đừng để lo toan vật chất che mất bản thân.
+Quản lý tài sản và công việc vững chắc.|Đừng tham lam hay cố chấp.`.split("\n").map(l=>l.split("|"));
+function topicText(d,t){
+ const c=d.c,pl=pol(d),m=d.r?c.rv:c.up,up=c.maj&&!d.r;
+ const ad=`<p class="m adv"><b>Lời khuyên:</b> ${ADV[c.id][d.r?1:0]}</p>`;
+ if(t==="yn")return `<p class="vd ${pl}">${VD[pl]}</p><p class="m on"><b>${d.r?"Nghĩa ngược":"Nghĩa xuôi"}:</b> ${m}</p>`+ad;
+ if(t==="adv")return `<p class="m on"><b>Ý nghĩa lá:</b> ${m}</p>`+ad;
+ const own=up&&t==="love"?c.love:up&&t==="work"?c.work:m;
+ const lens=c.maj?"Đây là lá Đại Bí nên chủ đề này mang tính bước ngoặt, đáng được coi trọng.":SL[t][c.suit];
+ return `<p class="m on"><b>${TPN[t]}:</b> ${FR[t][pl]} ${lens}</p><p class="m on">${own}</p>`+ad;
+}
+function tsum(t){
+ const n=drawn.length,pl=drawn.map(pol),y=pl.filter(x=>x==="Y").length,no=pl.filter(x=>x==="N").length,m=n-y-no,v=y>no?"Y":no>y?"N":"M";
+ if(t==="yn")return `<div class="sum"><b>Kết luận Yes/No:</b> ${y} lá nghiêng về CÓ, ${no} lá nghiêng về KHÔNG, ${m} lá chưa rõ. Xu hướng chung: <b>${VD[v]}</b>. Đây chỉ là xu hướng tham khảo; câu hỏi nên rõ ràng dạng có/không và nên bốc ít lá.</div>`;
+ const tone=v==="Y"?"nghiêng về thuận lợi":v==="N"?"có nhiều trở ngại cần lưu ý":"cân bằng giữa cơ hội và thử thách";
+ return `<div class="sum"><b>Tổng quan ${TPN[t].toLowerCase()}:</b> ${y} lá thuận, ${no} lá trở ngại, ${m} lá cần cân nhắc: tình hình ${tone}. ${PADV[v]}</div>`;
+}
 const SV={wand:'<path d="M5 19L17 7"/><path d="M13 3c3 1 6 4 8 8-4-1-7-4-8-8z"/>',cup:'<path d="M6 4h12v5a6 6 0 0 1-12 0z"/><path d="M12 15v5M8 20h8"/>',sword:'<path d="M12 2v14"/><path d="M7 16h10"/><path d="M12 16v6"/>',pent:'<circle cx="12" cy="12" r="9.5"/><path d="M12 4.5L16.4 18L4.9 9.7H19.1L7.6 18Z"/>',maj:'<path d="M12 2l2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z"/>'};
 const ic=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${SV[k]}</svg>`;
 const sel=$("n");for(let i=1;i<=12;i++)sel.add(new Option(i+" lá",i));sel.value=3;
@@ -192,13 +303,14 @@ function draw(){
 }
 function show(){
  const opened=[...document.querySelectorAll(".flip.open")].map(f=>+f.dataset.i).sort((a,b)=>a-b);
- const q=$("q").value.trim();
- let h=q?`<p class="k">Câu hỏi: <i>${q.replace(/</g,"&lt;")}</i></p>`:"";
+ const q=$("q").value.trim(),t=$("tp").value;
+ let h=`<p class="k">Chủ đề: <b>${TPN[t]}</b></p>`+(q?`<p class="k">Câu hỏi: <i>${q.replace(/</g,"&lt;")}</i></p>`:"");
  opened.forEach(i=>{const d=drawn[i],c=d.c,p=window._pos?window._pos[i]:"Lá "+(i+1);
   const ctx=c.maj?`<p class="img">${c.img}</p>`:`<p class="img">${c.img} Bộ ${SUITS[c.suit].vn}: ${SUITS[c.suit].el}. Lá ${RK[c.rank][1]}: ${RT[c.rank]}.</p>`;
-  const ex=c.maj?`<p class="m"><b>Tình cảm:</b> ${c.love}</p><p class="m"><b>Công việc:</b> ${c.work}</p><p class="m adv"><b>Lời khuyên:</b> ${c.adv}</p>`:"";
-  h+=`<div class="item"><h3>${p}: ${c.vn} ${d.r?"(Ngược)":"(Xuôi)"}</h3><div class="k">${c.en}</div>${ctx}<p class="m on"><b>${d.r?"Nghĩa ngược":"Nghĩa xuôi"}:</b> ${d.r?c.rv:c.up}</p>${ex}</div>`});
- if(opened.length===drawn.length)h+=summary();
+  const ex=(c.maj&&!d.r?`<p class="m"><b>Tình cảm:</b> ${c.love}</p><p class="m"><b>Công việc:</b> ${c.work}</p>`:"")+`<p class="m adv"><b>Lời khuyên:</b> ${ADV[c.id][d.r?1:0]}</p>`;
+  const body=t==="all"?ctx+`<p class="m on"><b>${d.r?"Nghĩa ngược":"Nghĩa xuôi"}:</b> ${d.r?c.rv:c.up}</p>${ex}`:`<p class="img">${c.img}</p>`+topicText(d,t);
+  h+=`<div class="item"><h3>${p}: ${c.vn} ${d.r?"(Ngược)":"(Xuôi)"}</h3><div class="k">${c.en}</div>${body}</div>`});
+ if(opened.length===drawn.length)h+=t==="all"?summary():tsum(t);
  $("reading").innerHTML=h;
 }
 function summary(){
@@ -212,6 +324,7 @@ function summary(){
  return `<div class="sum">${t}</div>`;
 }
 $("go").onclick=draw;
+$("tp").onchange=()=>{if($("tp").value==="yn")sel.value=1;if(drawn.length)show()};
 $("all").onclick=()=>{document.querySelectorAll(".flip").forEach((f,i)=>setTimeout(()=>{f.classList.add("open");show()},i*250))};
 $("lib").innerHTML="<tr><th>Lá bài</th><th>Xuôi</th><th>Ngược</th></tr>"+DECK.map(c=>`<tr><td><span class="li">${ic(c.ic)}</span> ${c.vn}<br><small>${c.en}</small></td><td>${cap(c.up)}</td><td>${cap(c.rv)}</td></tr>`).join("");
 </script>
