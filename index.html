@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tarot – Bốc bài &amp; diễn giải</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#120d1f;--card:#1e1535;--gold:#e8c777;--tx:#efe9ff;--mu:#a99cc9;--ac:#7c5cff}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at top,#2a1b4d,var(--bg) 60%);color:var(--tx);font-family:Georgia,"Times New Roman",serif;min-height:100vh}
+main{max-width:1000px;margin:auto;padding:24px 16px 60px}
+h1{text-align:center;color:var(--gold);letter-spacing:2px;margin:8px 0}
+.sub{text-align:center;color:var(--mu);margin-bottom:20px}
+.panel{background:var(--card);border:1px solid #3a2c63;border-radius:14px;padding:16px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center}
+input[type=text],select{background:#120d1f;color:var(--tx);border:1px solid #4a3a7a;border-radius:8px;padding:9px;font-size:15px}
+input[type=text]{flex:1 1 220px}
+button{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:10px 20px;font-size:16px;cursor:pointer}
+button:hover{filter:brightness(1.15)}
+button.ghost{background:transparent;border:1px solid var(--gold);color:var(--gold)}
+label{color:var(--mu);font-size:14px}
+#table{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:18px;margin:26px 0}
+.slot{perspective:900px;text-align:center}
+.pos{color:var(--mu);font-size:13px;margin-bottom:6px}
+.flip{position:relative;height:250px;transform-style:preserve-3d;transition:transform .8s;cursor:pointer}
+.flip.open{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;border:2px solid var(--gold)}
+.back{background:repeating-linear-gradient(45deg,#3b2a73,#3b2a73 8px,#2a1d54 8px,#2a1d54 16px);font-size:42px;color:var(--gold)}
+.front{transform:rotateY(180deg);background:linear-gradient(160deg,#f6ecd0,#d9c08a);color:#2b1d12}
+.front .ic{font-size:44px}.front .nm{font-weight:bold;margin-top:8px}.front .en{font-size:12px;opacity:.7}
+.front.rev .inner{transform:rotate(180deg)}
+.inner{display:flex;flex-direction:column;align-items:center;text-align:center}
+.tag{margin-top:6px;font-size:12px;background:#2b1d12;color:var(--gold);padding:2px 8px;border-radius:10px}
+#reading .item{background:var(--card);border-left:4px solid var(--gold);border-radius:10px;padding:12px 16px;margin:12px 0}
+#reading h3{margin:0 0 4px;color:var(--gold)}
+#reading .k{color:var(--mu);font-size:14px}
+.sum{background:#2a1b4d;border:1px solid var(--gold);border-radius:12px;padding:14px 18px;margin-top:20px;line-height:1.6}
+details{margin-top:34px;background:var(--card);border-radius:12px;padding:12px 16px}
+summary{cursor:pointer;color:var(--gold);font-size:18px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
+td,th{border-bottom:1px solid #3a2c63;padding:6px;text-align:left;vertical-align:top}
+th{color:var(--gold)}
+footer{text-align:center;color:var(--mu);font-size:12px;margin-top:30px}
+body{font-family:"Be Vietnam Pro","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.55}
+h1,#reading h3,summary{font-family:"Playfair Display","Be Vietnam Pro",serif}
+h1{font-size:44px;letter-spacing:8px}
+.face{-webkit-backface-visibility:hidden}
+.flip{height:290px;-webkit-transform-style:preserve-3d}
+svg{width:1em;height:1em;display:block}
+.back{color:var(--gold)}.back svg{width:56px;height:56px}
+.front{padding:14px 10px;box-shadow:inset 0 0 0 5px #f6ecd0,inset 0 0 0 6px #b99a58}
+.front .ic{font-size:54px;color:#7a5a1e;display:flex;justify-content:center}
+.front .nm{font-family:"Playfair Display",serif;font-size:19px;line-height:1.25;margin-top:14px}
+.front .en{font-size:12px;margin-top:6px;letter-spacing:.5px}
+.li{display:inline-block;width:1.1em;height:1.1em;vertical-align:-3px;color:var(--gold)}
+#reading .m{margin:4px 0;color:var(--mu)}#reading .m.on{color:var(--tx)}
+#reading .k{font-size:13px}
+button,input,select{font-family:inherit}
+td,th{padding:8px 6px}
+.img{font-style:italic;color:var(--mu);font-size:14px;margin:6px 0}#reading .adv{color:var(--gold)}
+</style>
+</head>
+<body>
+<main>
+<h1>TAROT</h1>
+<div class="sub">Tập trung vào câu hỏi của bạn, chọn số lá rồi bốc bài</div>
+<div class="panel">
+  <input type="text" id="q" placeholder="Câu hỏi của bạn (không bắt buộc)">
+  <label>Số lá: <select id="n"></select></label>
+  <label><input type="checkbox" id="rv" checked> Cho phép lá ngược</label>
+  <button id="go">Bốc bài</button>
+  <button class="ghost" id="all" style="display:none">Lật tất cả</button>
+</div>
+<div id="table"></div>
+<div id="reading"></div>
+<details>
+  <summary>Thư viện đủ 78 lá</summary>
+  <table id="lib"></table>
+</details>
+<footer>Nội dung theo bộ Rider–Waite–Smith, đối chiếu với sách The Pictorial Key to the Tarot (A.E. Waite, 1910). Tarot mang tính tham khảo, giải trí và tự soi chiếu, không thay thế lời khuyên chuyên môn.</footer>
+</main>
+<script>
+// Đại Bí (22): EN|VN|Hình ảnh|Xuôi|Ngược|Tình cảm|Công việc|Lời khuyên
+const MAJ=`The Fool|Chàng Khờ|Chàng trai trẻ sắp bước khỏi mép vách đá, vai mang túi nhỏ, tay cầm hoa trắng, chú chó bên chân, mặt trời phía sau.|Bước đầu của một hành trình. Lá của sự khởi đầu, niềm tin ngây thơ và sự sẵn sàng nhảy vào điều chưa biết. Waite ghi nghĩa cổ là sự dại khờ, bốc đồng; cách hiểu hiện đại là can đảm làm điều mới.|Thiếu suy xét, bất cẩn, liều lĩnh vô trách nhiệm; hoặc ngược lại, sợ hãi không dám bắt đầu dù cơ hội đang ở trước mắt.|Mối quan hệ mới đầy hứng khởi, nhưng tránh lao vào quá vội.|Cơ hội mới, hướng đi mới; cần cân nhắc rủi ro.|Tin vào bước đầu tiên, nhưng nhìn đường trước khi nhảy.
+The Magician|Nhà Ảo Thuật|Một người một tay giơ gậy lên trời, tay kia chỉ xuống đất, trước mặt là bàn có đủ biểu tượng bốn bộ bài, trên đầu có dấu vô cực.|Bạn đã có đủ công cụ (Gậy, Cốc, Kiếm, Tiền) và biết mình muốn gì. Lá của ý chí, kỹ năng, sự tập trung nối trời với đất để biến ý tưởng thành hiện thực. Nghĩa cổ: khéo léo, ngoại giao, tự tin.|Tài năng không được dùng đúng chỗ, thiếu tập trung; hoặc dùng sự khéo léo để lừa dối, thao túng.|Sức hút và sự chủ động; cẩn thận lời đường mật thiếu thật lòng.|Thời điểm khởi nghiệp, trình bày ý tưởng, dùng hết kỹ năng.|Bạn đã có đủ nguồn lực, hãy bắt tay vào làm.
+The High Priestess|Nữ Tư Tế|Nữ tư tế ngồi giữa hai cột đen trắng, cuộn kinh trên tay, tấm màn thạch lựu phía sau, trăng lưỡi liềm dưới chân.|Tiếng nói của trực giác và tiềm thức. Có điều chưa được nói ra hoặc chưa hiện rõ; hãy lắng nghe, chờ đợi và quan sát. Waite xem đây là tầng nghĩa sâu, bí truyền của những điều bí ẩn.|Phớt lờ trực giác, bí mật bị phơi bày, hoặc dựa vào suy đoán thay vì sự thật.|Cảm xúc sâu chưa nói thành lời; cần sự tin cậy lặng lẽ.|Chưa nên vội hành động, cần thêm thông tin.|Im lặng một chút, câu trả lời đã ở trong bạn.
+The Empress|Hoàng Hậu|Người phụ nữ ngồi trên ghế đệm giữa cánh đồng lúa chín, đội vương miện mười hai sao, khiên hình trái tim.|Sự sung túc, nuôi dưỡng và sức sáng tạo của thiên nhiên. Tình yêu thương, ý tưởng đang thai nghén, đời sống đủ đầy về giác quan. Waite gắn lá này với sự phong nhiêu.|Phụ thuộc, ôm đồm chăm sóc người khác mà quên bản thân, bế tắc sáng tạo, hoặc buông thả.|Tình cảm ấm áp, gắn bó; có thể liên quan đến gia đình, con cái.|Dự án đang lớn lên, cần được chăm chút đều đặn.|Chăm bản thân như cách bạn chăm điều mình yêu.
+The Emperor|Hoàng Đế|Vị vua ngồi ngai đá khắc đầu cừu, tay cầm quyền trượng ankh và quả cầu, núi đá phía sau.|Quyền lực, trật tự, cấu trúc và sự bảo vệ. Người lãnh đạo có kỷ luật, đặt quy tắc rõ ràng và chịu trách nhiệm.|Độc đoán, cứng nhắc, lạm quyền; hoặc thiếu kỷ luật, khó tự lập.|Mối quan hệ cần ổn định, rõ ràng; coi chừng sự kiểm soát.|Lập kế hoạch, thiết lập hệ thống, nhận vai trò dẫn dắt.|Đặt khung rõ ràng, nhưng đừng quá cứng.
+The Hierophant|Giáo Hoàng|Giáo chủ ngồi giữa hai trụ, tay giơ ban phước, hai người quỳ trước mặt, hai chìa khóa bắt chéo.|Truyền thống, giáo dục, hệ giá trị chung và sự dẫn dắt của người thầy. Học theo cách đã được kiểm chứng, hòa vào cộng đồng, tìm ý nghĩa tinh thần.|Phá khuôn mẫu, nghi ngờ tín điều, tự tìm đường riêng; hoặc bị trói buộc bởi lề thói lỗi thời.|Cam kết, nghi lễ (đính hôn, cưới hỏi), quan niệm gia đình.|Học chính quy, có người hướng dẫn, làm theo quy trình.|Học từ người đi trước, rồi chọn điều hợp với mình.
+The Lovers|Tình Nhân|Một nam một nữ đứng dưới thiên thần, sau người nữ là cây có rắn, sau người nam là cây lửa.|Tình yêu và sự hòa hợp, nhưng cốt lõi là lựa chọn dựa trên giá trị thật của bản thân. Waite nhấn mạnh lá này còn có tầng nghĩa cao hơn chuyện đôi lứa.|Mất cân bằng, bất hòa, lựa chọn trái giá trị, trì hoãn quyết định quan trọng.|Kết nối sâu và cam kết; hoặc khủng hoảng cần nói thật.|Đối tác hợp giá trị, quyết định nghề nghiệp lớn.|Chọn điều đúng với bạn, không phải điều dễ nhất.
+The Chariot|Cỗ Xe|Chiến binh đứng trong cỗ xe dưới tán sao, hai nhân sư đen trắng phía trước, không cầm dây cương.|Chiến thắng nhờ ý chí và kỷ luật; điều khiển hai lực đối lập cùng đi một hướng. Tiến lên có mục tiêu, vượt chướng ngại.|Mất phương hướng, thiếu kiểm soát, hung hăng, hoặc bị lực bên ngoài kéo đi.|Chủ động theo đuổi; hai người cần chung hướng đi.|Dồn sức cho mục tiêu, thăng tiến, chuyến đi công tác.|Giữ hướng nhìn, đừng để các lực kéo tách bạn ra.
+Strength|Sức Mạnh|Người phụ nữ nhẹ nhàng đặt tay lên hàm sư tử, trên đầu có dấu vô cực.|Sức mạnh đến từ kiên nhẫn, lòng trắc ẩn và sự tự chủ; chế ngự bản năng bằng sự dịu dàng chứ không cưỡng ép.|Tự ti, nghi ngờ bản thân, để cảm xúc hoặc bản năng lấn át; hoặc dùng sức mạnh thô bạo.|Kiên nhẫn, bao dung với người thương và với chính mình.|Giữ bình tĩnh dưới áp lực, thuyết phục thay vì ép.|Mềm mà vững.
+The Hermit|Ẩn Sĩ|Cụ già cầm đèn có ngôi sao sáu cánh, chống gậy, đứng trên đỉnh núi tuyết.|Rút về để tự vấn và tìm sự thật bên trong; ngọn đèn soi đường cho mình và cho người sau. Waite coi đây là lá của sự thấu hiểu, không chỉ là cô độc.|Cô lập quá mức, trốn tránh; hoặc từ chối lời khuyên; cũng có thể là kết thúc giai đoạn ở một mình.|Cần thời gian riêng để hiểu mình trước khi bước vào quan hệ.|Nghiên cứu sâu, làm việc độc lập, tìm người cố vấn.|Dành chút thời gian yên tĩnh để nghe tiếng nói bên trong.
+Wheel of Fortune|Bánh Xe Số Phận|Bánh xe có chữ và ký hiệu, xung quanh là bốn sinh vật có cánh, rắn bên dưới, nhân sư bên trên.|Chu kỳ xoay vần: lúc lên, lúc xuống. Bước ngoặt, vận may và duyên số đến; nhắc rằng không gì tồn tại mãi.|Gặp trắc trở, chống lại thay đổi, cảm giác kẹt trong vòng lặp.|Duyên số gặp gỡ hoặc giai đoạn đổi thay.|Thay đổi bất ngờ, cơ hội; thị trường biến động.|Thích nghi với dòng chảy, tận dụng lúc lên.
+Justice|Công Lý|Người ngồi ngai cầm gươm thẳng đứng và cán cân, đội vương miện, màn che phía sau.|Công bằng, sự thật và nhân quả: mỗi hành động đều có hệ quả. Cần quyết định dựa trên lẽ phải và sự rõ ràng.|Bất công, né tránh trách nhiệm, thiên vị, hoặc kết quả chưa như mong đợi.|Đối xử công bằng, nói thật; chuyện pháp lý hôn nhân.|Hợp đồng, giấy tờ, pháp lý; quyết định công tâm.|Nhìn mọi mặt trước khi quyết định.
+The Hanged Man|Người Treo Ngược|Người đàn ông treo ngược bằng một chân trên cây chữ T, hào quang quanh đầu, gương mặt bình thản.|Tạm dừng và buông bỏ có chủ ý để thấy từ góc nhìn mới. Hy sinh nhỏ để đạt giá trị lớn hơn; chờ đúng lúc.|Trì hoãn vô ích, hy sinh không đáng, kháng cự bài học.|Nhìn mối quan hệ theo cách khác, đừng ép.|Dự án đình trệ tạm thời, cần đổi cách tiếp cận.|Đừng vội hành động, hãy đổi góc nhìn.
+Death|Thần Chết|Bộ xương cưỡi ngựa trắng cầm cờ hoa hồng trắng; nhà vua ngã xuống, mặt trời mọc giữa hai tháp.|Kết thúc để mở ra chương mới. Hiếm khi là cái chết thật; thường là chuyển hóa sâu, buông điều đã hết vai trò. Waite ghi nhận cả nghĩa thay đổi và chuyển hóa.|Sợ đổi thay, níu kéo thứ đã qua, trì trệ kéo dài.|Khép lại một giai đoạn để tái sinh.|Đổi nghề, kết thúc dự án cũ.|Để cái cũ ra đi, chỗ trống sẽ có thứ mới.
+Temperance|Tiết Chế|Thiên thần một chân trong nước, một chân trên đất, rót nước qua lại giữa hai chiếc cốc, đường mòn dẫn tới ánh sáng.|Cân bằng, điều độ, kiên nhẫn và hòa trộn các mặt đối lập. Tiến chậm mà chắc, tìm trung đạo.|Mất cân bằng, thái quá, thiếu kiên nhẫn, xung đột nội tâm.|Hòa hợp, nhường nhịn đôi bên.|Phối hợp nhịp nhàng, tránh làm quá sức.|Đừng cực đoan, thêm chút kiên nhẫn.
+The Devil|Ác Quỷ|Hình dê Baphomet ngồi trên bệ đá, một nam một nữ bị xích cổ bằng sợi xích lỏng.|Ràng buộc do chính mình: nghiện, cám dỗ, tham vật chất, quan hệ độc hại. Điểm quan trọng: dây xích trên bài khá lỏng, bạn có thể tháo ra.|Bắt đầu thoát khỏi ràng buộc, nhận ra mình đang bị trói, lấy lại quyền kiểm soát.|Say mê mãnh liệt nhưng có thể độc hại hoặc kiểm soát.|Làm vì tiền, môi trường ràng buộc.|Nhìn thẳng vào điều đang trói buộc bạn.
+The Tower|Tòa Tháp|Tòa tháp bị sét đánh, lửa phun ra, hai người rơi xuống, vương miện văng đi.|Biến cố bất ngờ làm sụp đổ nền tảng giả tạo. Đau nhưng giải phóng, sự thật phơi bày. Waite gọi đây là lá của sự hỗn loạn.|Né tránh hoặc kéo dài sự sụp đổ, sợ thay đổi; hoặc thoát nạn trong gang tấc.|Quan hệ lung lay vì sự thật bị lộ.|Thay đổi đột ngột, tái cơ cấu.|Xây lại trên nền tảng thật hơn.
+The Star|Ngôi Sao|Người phụ nữ quỳ bên hồ, rót nước xuống đất và xuống nước, một sao lớn và bảy sao nhỏ trên trời.|Hy vọng, chữa lành sau biến cố, niềm tin vào tương lai. Sự thanh thản và cảm hứng.|Mất niềm tin, thất vọng, cạn năng lượng; cảm giác ánh sáng xa vời.|Mối quan hệ chữa lành, chân thành.|Dự án truyền cảm hứng, tầm nhìn dài hạn.|Giữ niềm tin và chăm sóc bản thân.
+The Moon|Mặt Trăng|Mặt trăng trên trời, hai tháp, chó và sói tru, tôm hùm bò lên từ nước, con đường mờ dẫn xa.|Ảo ảnh, nỗi sợ tiềm thức và điều chưa rõ. Mọi thứ không như vẻ ngoài; hãy tin trực giác nhưng kiểm chứng.|Sương mù dần tan, sự thật rõ hơn; hoặc nỗi lo kéo dài do tưởng tượng.|Cảm xúc mơ hồ, bất an, còn điều chưa nói.|Thông tin chưa đầy đủ, đừng ký vội.|Đi chậm, chờ ánh sáng ban ngày.
+The Sun|Mặt Trời|Mặt trời lớn chiếu xuống đứa trẻ cưỡi ngựa trắng cầm cờ đỏ, hoa hướng dương sau bức tường.|Niềm vui, sự rõ ràng, thành công và sức sống. Mọi thứ sáng tỏ, năng lượng tích cực.|Niềm vui đến chậm hoặc nhẹ hơn, lạc quan thái quá, bị mây che tạm thời.|Hạnh phúc, tình cảm cởi mở, tin vui gia đình.|Thành tựu được công nhận, dự án suôn sẻ.|Tận hưởng và chia sẻ niềm vui.
+Judgement|Phán Xét|Thiên thần thổi kèn, người từ quan tài trỗi dậy, dang tay đón.|Tiếng gọi thức tỉnh, nhìn lại cuộc đời, tha thứ và bắt đầu lại ở tầng cao hơn. Waite nhấn mạnh sự tái sinh.|Tự trách, nghi ngờ bản thân, lờ đi tiếng gọi, không chịu học bài học cũ.|Làm mới quan hệ hoặc hòa giải.|Đánh giá năng lực, đổi hướng theo tiếng gọi.|Lắng nghe tiếng gọi bên trong và hành động.
+The World|Thế Giới|Người phụ nữ nhảy múa trong vòng hoa, bốn sinh vật canh giữ bốn góc.|Hoàn thành một chu kỳ, trọn vẹn và thành tựu; hội nhập, niềm vui trong sự đủ đầy.|Dở dang, thiếu điểm kết, khó khép lại hoặc chưa sẵn sàng sang chu kỳ mới.|Một giai đoạn viên mãn.|Hoàn thành dự án, mở rộng.|Khép lại trọn vẹn rồi hãy sang chương mới.`.split("\n").map((s,i)=>{const p=s.split("|");return{id:i,maj:1,en:p[0],vn:p[1],img:p[2],up:p[3],rv:p[4],love:p[5],work:p[6],adv:p[7],ic:"maj"}});
+
+// Tiểu Bí: Hình ảnh|Xuôi|Ngược
+const SUITS=[
+ {k:"Wands",vn:"Gậy",ic:"wand",el:"Lửa (hành động, đam mê, sự nghiệp)",d:`Bàn tay từ mây đưa ra cây gậy đang nảy lộc.|Nguồn cảm hứng, năng lượng và cơ hội mới đầy đam mê.|Thiếu động lực, ý tưởng chưa nảy mầm, khởi đầu bị trì hoãn.
+Người đứng trên tường thành, tay cầm quả cầu, nhìn ra biển.|Lập kế hoạch, cân nhắc bước đi lớn, chọn giữa an toàn và mở rộng.|Sợ bước khỏi vùng an toàn, kế hoạch kém, chần chừ.
+Người đứng nhìn tàu rời bến ra khơi.|Mở rộng tầm nhìn, chờ thành quả từ việc đã làm, hợp tác từ xa.|Chậm trễ, kế hoạch không như ý, thiếu tầm nhìn.
+Bốn gậy cắm hoa, đám đông ăn mừng.|Ăn mừng, ổn định, gia đình và cộng đồng hòa hợp.|Bất ổn gia đình, thiếu nền tảng, trì hoãn ăn mừng.
+Năm người vung gậy lộn xộn.|Cạnh tranh, bất đồng, va chạm ý kiến; chưa hẳn là chiến tranh.|Né xung đột, hòa giải, hoặc căng thẳng ngầm.
+Người cưỡi ngựa đội vòng nguyệt quế giữa đám đông.|Chiến thắng, được công nhận, tự hào.|Thất bại công khai, mất uy tín, hoặc thành công thiếu người chia sẻ.
+Một người đứng trên đồi chống lại sáu gậy từ dưới.|Giữ vững lập trường, bảo vệ thứ mình có.|Bị áp đảo, kiệt sức, muốn bỏ cuộc.
+Tám gậy bay lướt trên trời.|Tốc độ, tiến triển nhanh, tin tức, hành động dồn dập.|Chậm trễ, vội vàng, hiểu lầm thông tin.
+Người băng bó, tựa gậy, nhìn lại sau lưng.|Kiên cường khi gần đến đích, cảnh giác sau nhiều thử thách.|Kiệt sức, đa nghi, cố chấp hoặc bỏ cuộc sát đích.
+Người cõng bó mười gậy nặng về phía thị trấn.|Gánh nặng trách nhiệm, làm quá nhiều; sắp đến đích nhưng quá tải.|Buông bớt gánh, ủy thác, hoặc kiệt quệ.
+Người trẻ cầm gậy nhìn ngắm giữa sa mạc.|Tò mò, ý tưởng mới, tin vui, tinh thần khám phá.|Thiếu kiên trì, ý tưởng dở dang, tin xấu nhỏ.
+Kỵ sĩ phi ngựa lao nhanh, áo thêu kỳ nhông.|Nhiệt huyết, phiêu lưu, hành động nhanh.|Nóng vội, bốc đồng, thiếu kiên nhẫn.
+Nữ hoàng cầm hoa hướng dương, mèo đen dưới chân.|Tự tin, ấm áp, quyến rũ, độc lập.|Ghen tị, nóng tính, thao túng bằng sức hút.
+Vua ngồi ngai cầm gậy, kỳ nhông bên cạnh.|Lãnh đạo có tầm nhìn, truyền cảm hứng, dám làm.|Độc đoán, kiêu ngạo, thiếu kiên nhẫn với người khác.`},
+ {k:"Cups",vn:"Cốc",ic:"cup",el:"Nước (cảm xúc, tình cảm, các mối quan hệ)",d:`Bàn tay từ mây nâng chiếc cốc tràn nước, bồ câu và hoa sen.|Tình yêu mới, cảm xúc dâng tràn, lòng biết ơn và sự mở lòng.|Cảm xúc bị dồn nén, trống rỗng, khó mở lòng.
+Hai người trao cốc cho nhau, phía trên có đầu sư tử có cánh.|Kết nối đôi bên, tình yêu đôi lứa, hợp tác tương hỗ.|Mất cân bằng, hiểu lầm, chia tay hoặc đổ vỡ lòng tin.
+Ba cô gái nâng cốc nhảy múa giữa mùa gặt.|Tình bạn, ăn mừng, niềm vui cộng đồng.|Quá đà trong vui chơi, tin đồn, bị cô lập khỏi nhóm.
+Người ngồi dưới gốc cây khoanh tay, một chiếc cốc mới được đưa ra từ mây.|Chán nản, thờ ơ, mải nghĩ đến điều đã mất nên bỏ lỡ cơ hội trước mắt.|Nhận ra cơ hội, thoát khỏi thờ ơ.
+Người áo choàng đen nhìn ba cốc đổ, hai cốc còn đứng phía sau.|Mất mát, tiếc nuối; nhưng vẫn còn hai cốc đứng vững.|Chấp nhận, nhìn thấy điều còn lại, bước tiếp.
+Cậu bé tặng cốc hoa cho cô bé trong sân nhà.|Hoài niệm, ký ức tuổi thơ, lòng tốt giản dị.|Mắc kẹt trong quá khứ, cần nhìn thực tế.
+Người nhìn bảy cốc trong mây, mỗi cốc chứa một thứ lạ.|Nhiều lựa chọn, mộng tưởng, dễ bị ảo tưởng.|Tỉnh táo hơn, chọn rõ mục tiêu.
+Người bỏ lại tám cốc xếp, đi lên núi dưới ánh trăng.|Rời bỏ điều không còn thỏa mãn để tìm ý nghĩa sâu hơn.|Do dự ra đi, quay lại điều cũ, hoặc trốn tránh.
+Người đàn ông ngồi khoanh tay trước chín cốc xếp cong.|Điều ước thành sự thật, mãn nguyện, hài lòng.|Tham lam, hời hợt, bất mãn dù đủ đầy.
+Cặp đôi và hai đứa trẻ dưới cầu vồng mười cốc.|Hạnh phúc gia đình, viên mãn về cảm xúc.|Bất hòa gia đình, giá trị lệch nhau, vẻ ngoài hoàn hảo che rạn nứt.
+Chàng trẻ cầm cốc có con cá thò đầu ra.|Tin vui cảm xúc, trực giác sáng tạo, lời tỏ tình.|Non nớt cảm xúc, mơ mộng, tin xấu về tình cảm.
+Kỵ sĩ cưỡi ngựa trắng bước chậm, giơ cốc.|Lãng mạn, lời mời, theo đuổi bằng cảm xúc.|Hứa suông, thất thường, ngụy tạo.
+Nữ hoàng ngồi bên bờ biển, ngắm chiếc cốc có nắp.|Đồng cảm, trực giác, nuôi dưỡng.|Quá nhạy cảm, phụ thuộc cảm xúc.
+Vua ngồi ngai giữa biển động mà vẫn bình thản.|Điềm tĩnh cảm xúc, bao dung, khôn ngoan.|Thao túng cảm xúc, thất thường.`},
+ {k:"Swords",vn:"Kiếm",ic:"sword",el:"Khí (tư duy, lời nói, sự thật, xung đột)",d:`Bàn tay từ mây cầm thanh kiếm đội vương miện.|Sự rõ ràng, đột phá tư duy, sự thật, quyết tâm.|Mơ hồ, phán đoán sai, dùng sức mạnh không đúng chỗ.
+Người bịt mắt giữ hai kiếm bắt chéo bên mặt biển.|Bế tắc, khó chọn, né tránh nhìn sự thật.|Quyết định được đưa ra, sự thật lộ ra, thoát bế tắc.
+Trái tim bị ba kiếm xuyên giữa mưa và mây.|Đau lòng, tổn thương, chia ly; hãy thừa nhận nỗi đau.|Hồi phục, tha thứ, buông nỗi đau.
+Hiệp sĩ nằm trên quan tài, ba kiếm treo tường, một kiếm dưới.|Nghỉ ngơi, phục hồi, thiền định.|Kiệt sức, vội quay lại, không chịu nghỉ.
+Người cầm ba kiếm đứng cười, hai người bỏ đi.|Thắng lợi cay đắng, xung đột, ích kỷ.|Hối hận, hòa giải, nhận lỗi.
+Người chở thuyền mang sáu kiếm sang vùng nước phẳng.|Chuyển tiếp, rời xa khó khăn, hướng đến bình yên.|Bị kẹt, kháng cự thay đổi.
+Người rón rén mang năm kiếm, bỏ lại hai.|Mưu mẹo, lén lút, làm một mình.|Thú nhận, bị phát hiện, quay lại sửa sai.
+Người bị bịt mắt, trói, vây quanh bởi tám kiếm.|Cảm giác bị giam hãm, thực ra là tự giới hạn.|Tự giải phóng, có góc nhìn mới.
+Người bật dậy trên giường ôm mặt, chín kiếm treo tường.|Lo âu, mất ngủ, ác mộng, tự dằn vặt.|Nỗi sợ nhẹ bớt, tìm sự giúp đỡ.
+Người nằm sấp với mười kiếm trên lưng, bình minh ở phía xa.|Chạm đáy, kết thúc đau đớn, phản bội; nhưng bình minh sắp tới.|Hồi phục dần, hoặc không chịu buông chuyện cũ.
+Thiếu niên cầm kiếm giữa gió mạnh.|Tò mò trí tuệ, thông tin mới, thẳng thắn.|Lời nói gay gắt, thiếu suy nghĩ, tin đồn.
+Kỵ sĩ phi ngựa lao nhanh trong gió.|Nhanh nhẹn, thẳng thắn, tham vọng.|Hấp tấp, thô lỗ.
+Nữ hoàng ngồi giơ kiếm, nét mặt nghiêm nghị.|Sắc sảo, độc lập, trung thực.|Lạnh lùng, cay nghiệt.
+Vua ngồi ngai giữ kiếm thẳng đứng.|Lý trí, công bằng, quyền uy trí tuệ.|Lạm quyền, tàn nhẫn.`},
+ {k:"Pentacles",vn:"Tiền",ic:"pent",el:"Đất (vật chất, tiền bạc, công việc, sức khỏe)",d:`Bàn tay từ mây nâng đồng tiền có sao, bên dưới là khu vườn và cổng vòm.|Cơ hội tài chính, khởi đầu thịnh vượng.|Bỏ lỡ cơ hội, kế hoạch tiền bạc kém.
+Người tung hứng hai đồng tiền nối nhau bằng dấu vô cực, sóng lớn sau lưng.|Xoay xở, linh hoạt, cân bằng nhiều việc.|Quá tải, mất cân bằng tài chính.
+Thợ thủ công làm việc trong nhà thờ, hai người xem bản vẽ.|Hợp tác, tay nghề được công nhận, làm việc nhóm.|Thiếu đồng đội, chất lượng kém.
+Người ngồi ôm đồng tiền, chân đạp lên hai đồng khác.|Tiết kiệm, an toàn, giữ chặt tài sản.|Keo kiệt, bám víu, hoặc buông bớt.
+Hai người nghèo đi qua cửa sổ nhà thờ sáng đèn giữa tuyết.|Khó khăn, thiếu thốn; có nơi nương tựa nhưng chưa nhìn thấy.|Hồi phục, tìm được hỗ trợ.
+Thương gia cân và chia tiền cho người nghèo.|Cho và nhận, hào phóng, giúp đỡ công bằng.|Nợ nần, bất công, điều kiện kèm theo.
+Người nông dân chống cuốc nhìn bảy đồng tiền trên cây.|Kiên nhẫn chờ kết quả, đánh giá lại đầu tư.|Thiếu kiên nhẫn, công sức lãng phí.
+Thợ thủ công khắc từng đồng tiền.|Chuyên cần, học nghề, tinh thông.|Cầu toàn, thiếu động lực, làm cho xong.
+Quý bà trong vườn nho, chim ưng đậu trên tay.|Độc lập, sung túc, tự lực.|Phụ thuộc, phô trương, cô đơn.
+Gia đình ba thế hệ trước cổng lâu đài.|Di sản, thịnh vượng dài lâu, gia đình.|Rắc rối tài chính gia đình, mất ổn định.
+Thiếu niên ngắm đồng tiền trên tay giữa cánh đồng.|Học hỏi, mục tiêu thực tế, cơ hội mới.|Thiếu thực tế, lười biếng.
+Kỵ sĩ ngồi ngựa đen đứng yên giữa ruộng.|Bền bỉ, đáng tin, chậm mà chắc.|Trì trệ, cứng đầu.
+Nữ hoàng ngồi trong vườn hoa, ôm đồng tiền.|Thực tế, chu đáo, nuôi dưỡng.|Lo vật chất, bỏ bê bản thân.
+Vua ngồi ngai trang trí nho và đầu bò.|Giàu có, ổn định, thành đạt.|Tham lam, cố chấp.`}
+];
+const RK=[["Ace","Át"],["Two","Hai"],["Three","Ba"],["Four","Bốn"],["Five","Năm"],["Six","Sáu"],["Seven","Bảy"],["Eight","Tám"],["Nine","Chín"],["Ten","Mười"],["Page","Thị Đồng"],["Knight","Kỵ Sĩ"],["Queen","Nữ Hoàng"],["King","Vua"]];
+const RT=["khởi đầu, hạt giống của chủ đề","lựa chọn, cân bằng, quan hệ đôi","phát triển, hợp tác, bước đầu thành quả","ổn định, nền tảng, nghỉ ngơi","thử thách, xung đột, mất cân bằng","hòa hợp, chuyển tiếp, hồi phục","đánh giá, thử thách niềm tin","hành động, chuyển động, chuyên sâu","gần hoàn thành, nội lực, trải nghiệm","kết thúc chu kỳ, đỉnh điểm của chủ đề","người học việc: tin tức, tinh thần khám phá","hành động: chuyển động, theo đuổi mục tiêu","nội hóa: nuôi dưỡng, thấu hiểu chủ đề","làm chủ: quyền uy, trách nhiệm trọn vẹn"];
+const DECK=[...MAJ];
+SUITS.forEach((s,si)=>s.d.split("\n").forEach((l,i)=>{const p=l.split("|");
+ DECK.push({id:22+si*14+i,maj:0,suit:si,rank:i,en:RK[i][0]+" of "+s.k,vn:RK[i][1]+" "+s.vn,img:p[0],up:p[1],rv:p[2],ic:s.ic});}));
+
+const $=id=>document.getElementById(id);
+const SV={wand:'<path d="M5 19L17 7"/><path d="M13 3c3 1 6 4 8 8-4-1-7-4-8-8z"/>',cup:'<path d="M6 4h12v5a6 6 0 0 1-12 0z"/><path d="M12 15v5M8 20h8"/>',sword:'<path d="M12 2v14"/><path d="M7 16h10"/><path d="M12 16v6"/>',pent:'<circle cx="12" cy="12" r="9.5"/><path d="M12 4.5L16.4 18L4.9 9.7H19.1L7.6 18Z"/>',maj:'<path d="M12 2l2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z"/>'};
+const ic=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${SV[k]}</svg>`;
+const sel=$("n");for(let i=1;i<=12;i++)sel.add(new Option(i+" lá",i));sel.value=3;
+const rnd=n=>{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%n};
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+let drawn=[];
+
+function draw(){
+ const n=+sel.value,pool=[...DECK];
+ for(let i=pool.length-1;i>0;i--){const j=rnd(i+1);[pool[i],pool[j]]=[pool[j],pool[i]]}
+ drawn=pool.slice(0,n).map(c=>({c,r:$("rv").checked&&rnd(2)===1}));
+ const pos=n===3?["Quá khứ","Hiện tại","Tương lai"]:n===1?["Thông điệp"]:null;
+ $("table").innerHTML=drawn.map((d,i)=>`<div class="slot"><div class="pos">${pos?pos[i]:"Lá "+(i+1)}</div>
+ <div class="flip" data-i="${i}"><div class="face back">${ic("maj")}</div>
+ <div class="face front ${d.r?"rev":""}"><div class="inner"><div class="ic">${ic(d.c.ic)}</div><div class="nm">${d.c.vn}</div><div class="en">${d.c.en}</div>${d.r?'<div class="tag">NGƯỢC</div>':""}</div></div></div></div>`).join("");
+ $("reading").innerHTML="";$("all").style.display="inline-block";
+ document.querySelectorAll(".flip").forEach(f=>f.onclick=()=>{f.classList.add("open");show()});
+ window._pos=pos;
+}
+function show(){
+ const opened=[...document.querySelectorAll(".flip.open")].map(f=>+f.dataset.i).sort((a,b)=>a-b);
+ const q=$("q").value.trim();
+ let h=q?`<p class="k">Câu hỏi: <i>${q.replace(/</g,"&lt;")}</i></p>`:"";
+ opened.forEach(i=>{const d=drawn[i],c=d.c,p=window._pos?window._pos[i]:"Lá "+(i+1);
+  const ctx=c.maj?`<p class="img">${c.img}</p>`:`<p class="img">${c.img} Bộ ${SUITS[c.suit].vn}: ${SUITS[c.suit].el}. Lá ${RK[c.rank][1]}: ${RT[c.rank]}.</p>`;
+  const ex=c.maj?`<p class="m"><b>Tình cảm:</b> ${c.love}</p><p class="m"><b>Công việc:</b> ${c.work}</p><p class="m adv"><b>Lời khuyên:</b> ${c.adv}</p>`:"";
+  h+=`<div class="item"><h3>${p}: ${c.vn} ${d.r?"(Ngược)":"(Xuôi)"}</h3><div class="k">${c.en}</div>${ctx}<p class="m on"><b>${d.r?"Nghĩa ngược":"Nghĩa xuôi"}:</b> ${d.r?c.rv:c.up}</p>${ex}</div>`});
+ if(opened.length===drawn.length)h+=summary();
+ $("reading").innerHTML=h;
+}
+function summary(){
+ const n=drawn.length,maj=drawn.filter(d=>d.c.maj).length,rev=drawn.filter(d=>d.r).length;
+ const cnt=[0,0,0,0];drawn.forEach(d=>{if(!d.c.maj)cnt[d.c.suit]++});
+ const top=Math.max(...cnt);let t=`<b>Tổng quan:</b> `;
+ t+=`Có ${maj}/${n} lá thuộc Bộ Ẩn Chính (Đại Bí). `+(maj/n>=0.5?"Nhiều lá lớn cho thấy đây là giai đoạn có ý nghĩa quan trọng, các sự kiện mang tính định hướng cuộc đời. ":maj===0?"Không có lá lớn, vấn đề thiên về chuyện thường ngày, bạn có nhiều quyền chủ động điều chỉnh. ":"");
+ if(top>0){const ds=SUITS.map((s,i)=>cnt[i]===top?s:null).filter(Boolean);t+=`Bộ nổi bật: ${ds.map(s=>s.vn+" – "+s.el).join("; ")}. `}
+ t+=rev===0?"Toàn bộ lá xuôi: năng lượng khá thông suốt. ":rev===n?"Toàn bộ lá ngược: nhiều điều đang bị chặn hoặc cần nhìn lại từ bên trong. ":`${rev}/${n} lá ngược: những chủ đề đó cần được xử lý hoặc nhìn từ góc khác. `;
+ if(window._pos&&n===3)t+=`Mạch chuyện: từ <b>${drawn[0].c.vn}</b> (quá khứ), qua <b>${drawn[1].c.vn}</b> (hiện tại), tới <b>${drawn[2].c.vn}</b> (tương lai).`;
+ return `<div class="sum">${t}</div>`;
+}
+$("go").onclick=draw;
+$("all").onclick=()=>{document.querySelectorAll(".flip").forEach((f,i)=>setTimeout(()=>{f.classList.add("open");show()},i*250))};
+$("lib").innerHTML="<tr><th>Lá bài</th><th>Xuôi</th><th>Ngược</th></tr>"+DECK.map(c=>`<tr><td><span class="li">${ic(c.ic)}</span> ${c.vn}<br><small>${c.en}</small></td><td>${cap(c.up)}</td><td>${cap(c.rv)}</td></tr>`).join("");
+</script>
+</body>
+</html>
